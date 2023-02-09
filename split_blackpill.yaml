@@ -1,0 +1,345 @@
+units:
+  cx: 18  # Choc X spacing
+  cy: 17  # Choc Y spacing
+
+points:
+  key:
+    padding: cy
+    footprints:
+      choc_hotswap:
+        type: choc_optional
+        nets:
+          from: GND
+          to: =pin
+        params:
+          reverse: true
+          keycaps: true
+          hotswap: true
+          solder: true
+        anchor:
+          rotate: 180
+      pin_via:
+        type: via
+        nets:
+          net: =pin
+        anchor:
+          shift: [0, -0.5 cy + .5]
+      gnd_via:
+        type: via
+        nets:
+          net: GND
+        anchor:
+          shift: [0, -0.2 cy]
+
+  zones:
+    matrix:
+      columns:
+        outer:
+          rows:
+            top:
+              pin: B1
+            home:
+              pin: B9
+            bottom:
+              pin: A3
+        pinky:
+          spread: cx
+          rows:
+            top:
+              pin: B10
+            home:
+              pin: B8
+            bottom:
+              pin: A4
+              bind: [2, 40, 2, 2]
+        ring:
+          stagger: 0.7cy
+          spread: cx
+          rows:
+            top:
+              pin: A8
+            home:
+              pin: B5
+            bottom:
+              pin: A5
+        middle:
+          stagger: 0.25cy
+          spread: cx
+          rows:
+            top:
+              pin: B15
+            home:
+              pin: B4
+            bottom:
+              pin: A6
+              bind: [20, 7]
+        index:
+          stagger: -0.25cy
+          spread: cx
+          rows:
+            top:
+              pin: B14
+            home:
+              pin: B3
+            bottom:
+              pin: A7
+        inner:
+          spread: cx
+          stagger: -0.15cy
+          rows:
+            top:
+              pin: B13
+            home:
+              pin: A15
+            bottom:
+              pin: B0
+              bind: [2, 10]
+      rows:
+        bottom:
+          bind: 2
+        home:
+          bind: 2
+        top:
+          bind: [2, 3]
+
+    thumb:
+      anchor:
+        ref: matrix_index_bottom
+        shift: [0, -1.3cx]
+        rotate: 5
+      columns:
+        inner:
+          key:
+            name: thumb_inner
+            bind: [11, 4, 2, 2]
+            pin: A2
+        center:
+          spread: 0.95 U
+          rotate: -15
+          origin: [-0.5cx, -0.5cy]
+          key:
+            name: thumb_center
+            bind: [2, 2, 2, 3]
+            pin: A1
+        outer:
+          spread: 0.95 U
+          rotate: -15
+          origin: [-0.5cx, -0.5cy]
+          key:
+            name: thumb_outer
+            bind: [2, 2, 2, 12]
+            pin: A0
+
+outlines:
+  exports:
+    raw:
+      - type: keys
+        side: left
+        size: [cx, cy]
+
+    keywell:
+      main:
+        type: outline
+        name: raw
+        fillet: 1
+
+    controller_area:
+      main:
+        type: rectangle
+        anchor:
+          ref:
+            - matrix_inner_top
+          shift: [0, -59.2]
+        size: [35.45, 70.7]
+        corner: 2
+
+    reset_access:
+      main:
+        type: rectangle
+        anchor:
+          ref:
+            - matrix_inner_top
+          shift: [17.25, -8.3]
+        size: [10.3, 8]
+        corner: 0.5
+
+    base_outline:
+      main:
+        type: outline
+        name: keywell
+      controller:
+        type: outline
+        name: controller_area
+        operation: add
+      reset_access:
+        type: outline
+        name: reset_access
+        operation: subtract
+
+    switches:
+      - type: keys
+        side: left
+        bound: false
+        size: [14, 14]
+
+    screw_holes:
+      top_left:
+        type: circle
+        anchor:
+          - ref: matrix_pinky_top
+            shift: [-0.5 cx, 0]
+        radius: 1.05
+      bottom_left:
+        type: circle
+        anchor:
+          - ref: matrix_pinky_bottom
+            shift: [-0.5 cx, 0]
+        radius: 1.05
+      top_right:
+        type: circle
+        anchor:
+          - ref: matrix_index_top
+            shift: [0.5 cx, 0]
+        radius: 1.05
+      palm:
+        type: circle
+        anchor:
+          - ref: matrix_index_bottom
+            shift: [0, -.68 cy]
+        radius: 1.05
+      thumb:
+        type: circle
+        anchor:
+          - ref: thumb_outer
+            shift: [-0.59 cx, 0.2cy]
+        radius: 1.05
+
+    mounting_holes:
+      $extends: outlines.exports.screw_holes
+      top_left:
+        radius: 2.05
+      bottom_left:
+        radius: 2.05
+      top_right:
+        radius: 2.05
+      palm:
+        radius: 2.05
+      thumb:
+        radius: 2.05
+
+    bottom_outline:
+      main:
+        type: outline
+        name: base_outline
+      screw_holes:
+        type: outline
+        name: screw_holes
+        operation: subtract
+
+    plate:
+      main:
+        type: outline
+        name: keywell
+      switches:
+        type: outline
+        name: switches
+        operation: subtract
+      mounting_holes:
+        type: outline
+        name: screw_holes
+        operation: subtract
+
+    pcb:
+      main:
+        type: outline
+        name: base_outline
+      mounting_holes:
+        type: outline
+        # TODO use plated through hole footprints as mounting holes
+        name: mounting_holes
+        operation: subtract
+
+
+
+
+pcbs:
+  top_plate:
+    # include JLCJLCJLCJLC text somewhere
+    include_keys: false
+    outlines:
+      edge:
+        outline: plate
+        layer: Edge.Cuts
+
+  bottom_plate:
+    include_keys: false
+    outlines:
+      edge:
+        outline: bottom_outline
+        layer: Edge.Cuts
+
+  board:
+    outlines:
+      edge:
+        outline: pcb
+        layer: Edge.Cuts
+        # TODO there's a way to add stuff to the silkscreen layer
+    footprints:
+      mcu_l:
+        type: blackpill
+        params:
+          orientation: down
+        anchor:
+          - ref: matrix_inner_home
+            shift: [23.65, 28.25]
+            rotate: -90
+        nets:
+          A9: VCC
+
+      mcu_r:
+        type: blackpill
+        params:
+          orientation: down
+          side: B
+        anchor:
+          - ref: matrix_inner_home
+            shift: [21.15, 28.25]
+            rotate: -90
+        nets:
+          A9: GND
+
+      trrs_r:
+        type: trrs
+        anchor:
+          ref:
+            - matrix_inner_bottom
+          shift: [35.45, -15.5]
+          rotate: 270
+        params:
+          reverse: false
+          symmetric: false
+          flip: true
+        # The naming of the nets on this footprint is different from the Corne schematics.
+        nets:
+          A: VCC
+          B: GND
+          C: B6
+          D: B7
+
+      trrs_l:
+        type: trrs
+        anchor:
+          ref:
+            - matrix_inner_bottom
+          shift: [35.45, -13.5]
+          rotate: 270
+        params:
+          reverse: true
+          symmetric: false
+          flip: true
+        # The naming of the nets on this footprint is different from the Corne schematics.
+        nets:
+          A: VCC
+          B: GND
+          C: B7
+          D: B6

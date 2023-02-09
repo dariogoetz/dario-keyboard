@@ -1,0 +1,396 @@
+units:
+  cx: 18  # Choc X spacing
+  cy: 17  # Choc Y spacing
+  distance: 51.5
+  rotation: 15
+
+points:
+  key:
+    padding: cy
+    footprints:
+      choc_hotswap:
+        type: choc_optional
+        nets:
+          from: =colrow
+          to: =column_net
+        params:
+          both_sides: false
+          keycaps: true
+          hotswap: true
+          solder: true
+          front: false
+        anchor:
+          rotate: 180
+      # column_net_via:
+      #   type: via
+      #   nets:
+      #     net: =column_net
+      #   anchor:
+      #     shift: [-0.1cx, -0.2 cy]
+      # diode_via:
+      #   type: via
+      #   nets:
+      #     net: =colrow
+      #   anchor:
+      #     shift: [0.1cx, -0.2 cy]
+      diode:
+        type: diode
+        params:
+          through_hole: false
+          front: false
+        nets:
+          from: =colrow
+          to: =row_net
+        anchor:
+          shift: [0.3 cx, -0.5 cy]
+          rotate: 0
+
+  zones:
+    matrix:
+      rotate: -rotation
+      mirror: &mirror
+        ref: matrix_inner_top
+        distance: distance
+      columns:
+        outer:
+          key:
+            column_net: B12
+            mirror:
+              column_net: B1
+            bind: 2
+        pinky:
+          spread: cx
+          key:
+            column_net: B14
+            mirror:
+              column_net: A7
+            bind: 2
+        ring:
+          stagger: 0.7cy
+          spread: cx
+          key:
+            column_net: B15
+            mirror:
+              column_net: A6
+        middle:
+          stagger: 0.25cy
+          spread: cx
+          key:
+            column_net: A8
+            mirror:
+              column_net: A4
+            bind: 2
+        index:
+          stagger: -0.25cy
+          spread: cx
+          key:
+            column_net: A15
+            mirror:
+              column_net: A2
+            bind: 2
+        inner:
+          spread: cx
+          stagger: -0.15cy
+          key:
+            column_net: B3
+            mirror:
+              column_net: A1
+            bind: 2
+      rows:
+        bottom:
+          bind: [2, 40, 2, 2]
+          row_net: B7
+        home:
+          bind: 2
+          row_net: B6
+        top:
+          bind: [2, 3]
+          row_net: B5
+
+    thumb:
+      mirror: *mirror
+      anchor:
+        ref: matrix_index_bottom
+        shift: [0, -1.3cx]
+        rotate: 5
+      columns:
+        inner:
+          key:
+            name: thumb_inner
+            bind: [11, 4, 2, 2]
+            column_net: A8
+            mirror:
+              column_net: A4
+        center:
+          spread: 0.95 U
+          rotate: -15
+          origin: [-0.5cx, -0.5cy]
+          key:
+            name: thumb_center
+            bind: [3, 2, 2, 3]
+            column_net: A15
+            mirror:
+              column_net: A2
+        outer:
+          spread: 0.95 U
+          rotate: -15
+          origin: [-0.5cx, -0.5cy]
+          key:
+            name: thumb_outer
+            bind: [2, 2, 2, 12]
+            column_net: B3
+            mirror:
+              column_net: A1
+      rows:
+        thumb:
+          row_net: B8
+
+outlines:
+  glue:
+    glue:
+      top:
+        left:
+          ref: matrix_inner_top
+          shift: [0, cx/2 + 2.5]
+        right:
+          ref: mirror_matrix_inner_top
+          shift: [0, cx/2 + 2.5]
+      bottom:
+        left:
+          ref: matrix_inner_bottom
+          shift: [0, -cx]
+        right:
+          ref: mirror_matrix_inner_bottom
+          shift: [0, -cx]
+  exports:
+    raw:
+      - type: keys
+        side: both
+        size: [cx, cy]
+
+    keywell:
+      main:
+        type: outline
+        name: raw
+        fillet: 1
+
+    controller_area:
+      main:
+        type: rectangle
+        anchor:
+          ref:
+            - matrix_inner_top
+            - mirror_matrix_inner_top
+          rotate: 0
+          shift: [-cx - 1.5, -4.5cx + 1.1]
+        size: [2cx + 3, 5cx]
+
+    reset_access:
+      main:
+        type: rectangle
+        anchor:
+          ref:
+            - matrix_inner_top
+            - mirror_matrix_inner_top
+          shift: [-6.12, -10.2]
+        size: [12.3, 8]
+        corner: 0.5
+
+    mcu_access:
+      main:
+        type: rectangle
+        anchor:
+          ref:
+            - matrix_inner_top
+            - mirror_matrix_inner_top
+          shift: [-11.0, -44.5]
+        size: [22.0, 60]
+        corner: 0.5
+
+    base_outline:
+      main:
+        type: outline
+        name: keywell
+      controller:
+        type: outline
+        name: controller_area
+        operation: add
+
+    base_outline_reset_access:
+      base_outline:
+        type: outline
+        name: base_outline
+      reset_access:
+        type: outline
+        name: reset_access
+        operation: subtract
+
+    base_outline_mcu_access:
+      base_outline:
+        type: outline
+        name: base_outline
+      mcu_access:
+        type: outline
+        name: mcu_access
+        operation: subtract
+
+    switches:
+      - type: keys
+        side: both
+        bound: false
+        size: [14, 14]
+
+    screw_holes:
+      top_left:
+        type: circle
+        anchor:
+          - ref: matrix_pinky_top
+            shift: [-0.5 cx, 0]
+        radius: 1.05
+      mirror_top_left:
+        type: circle
+        anchor:
+          - ref: mirror_matrix_pinky_top
+            shift: [-0.5 cx, 0]
+        radius: 1.05
+      bottom_left:
+        type: circle
+        anchor:
+          - ref: matrix_pinky_bottom
+            shift: [-0.5 cx, 0]
+        radius: 1.05
+      mirror_bottom_left:
+        type: circle
+        anchor:
+          - ref: mirror_matrix_pinky_bottom
+            shift: [-0.5 cx, 0]
+        radius: 1.05
+      top_right:
+        type: circle
+        anchor:
+          - ref: matrix_index_top
+            shift: [0.5 cx, 0]
+        radius: 1.05
+      mirror_top_right:
+        type: circle
+        anchor:
+          - ref: mirror_matrix_index_top
+            shift: [0.5 cx, 0]
+        radius: 1.05
+      thumb:
+        type: circle
+        anchor:
+          - ref: thumb_outer
+            shift: [-0.59 cx, 0.2cy]
+        radius: 1.05
+      mirror_thumb:
+        type: circle
+        anchor:
+          - ref: mirror_thumb_outer
+            shift: [-0.59 cx, 0.2cy]
+        radius: 1.05
+
+    mounting_holes:
+      $extends: outlines.exports.screw_holes
+      top_left:
+        radius: 2.05
+      bottom_left:
+        radius: 2.05
+      top_right:
+        radius: 2.05
+      thumb:
+        radius: 2.05
+      mirror_top_left:
+        radius: 2.05
+      mirror_bottom_left:
+        radius: 2.05
+      mirror_top_right:
+        radius: 2.05
+      mirror_thumb:
+        radius: 2.05
+
+    bottom_outline:
+      main:
+        type: outline
+        name: base_outline_mcu_access
+      screw_holes:
+        type: outline
+        name: screw_holes
+        operation: subtract
+
+    plate:
+      main:
+        type: outline
+        name: base_outline_mcu_access
+      switches:
+        type: outline
+        name: switches
+        operation: subtract
+      mounting_holes:
+        type: outline
+        name: screw_holes
+        operation: subtract
+
+    pcb:
+      main:
+        type: outline
+        name: base_outline_reset_access
+      mounting_holes:
+        type: outline
+        # TODO use plated through hole footprints as mounting holes
+        name: mounting_holes
+        operation: subtract
+
+
+
+
+pcbs:
+  top_plate:
+    include_keys: false
+    outlines:
+      edge:
+        outline: plate
+        layer: Edge.Cuts
+    footprints:
+      text: &text
+        type: text
+        anchor:
+          - ref:
+            - matrix_inner_bottom
+            - mirror_matrix_inner_bottom
+            shift: [0, -16]
+        params:
+          text: dario
+          h_size: 5
+          v_size: 5
+          thickness: 0.45
+
+  bottom_plate:
+    include_keys: false
+    outlines:
+      edge:
+        outline: bottom_outline
+        layer: Edge.Cuts
+    footprints:
+      text: *text
+
+  board:
+    outlines:
+      edge:
+        outline: pcb
+        layer: Edge.Cuts
+        # TODO there's a way to add stuff to the silkscreen layer
+    footprints:
+      mcu:
+        type: blackpill
+        params:
+          orientation: down
+          side: B
+        anchor:
+          - ref:
+            - matrix_inner_home
+            - mirror_matrix_inner_home
+            shift: [0, 26]
+            rotate: -90
+      text: *text
+
