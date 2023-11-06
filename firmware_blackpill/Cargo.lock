@@ -359,7 +359,7 @@ dependencies = [
 [[package]]
 name = "keyberon"
 version = "0.2.0"
-source = "git+https://github.com/dariogoetz/keyberon.git?branch=fix_release_holdtap#52a7491971d9e6cd0aaf118281574310cc27e10e"
+source = "git+https://github.com/dariogoetz/keyberon.git?branch=tri-state-layers#a8e6ca5da957cc02ea24fa79a1b49ab212174548"
 dependencies = [
  "arraydeque",
  "either",
@@ -372,7 +372,7 @@ dependencies = [
 [[package]]
 name = "keyberon-macros"
 version = "0.1.0"
-source = "git+https://github.com/dariogoetz/keyberon.git?branch=fix_release_holdtap#52a7491971d9e6cd0aaf118281574310cc27e10e"
+source = "git+https://github.com/dariogoetz/keyberon.git?branch=tri-state-layers#a8e6ca5da957cc02ea24fa79a1b49ab212174548"
 dependencies = [
  "proc-macro-error",
  "proc-macro2",

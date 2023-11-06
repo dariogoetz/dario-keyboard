@@ -197,13 +197,16 @@ mod app {
         ];
         let matrix = cortex_m::interrupt::free(move |_cs| DirectPinMatrix::new(matrix_pins));
 
+        let mut layout = Layout::new(&layout::LAYERS);
+        layout.add_tri_state_layer((1, 2), 3);
+
         (
             Shared {
                 // Initialization of shared resources go here
                 usb_dev,
                 usb_class,
                 is_left_hand,
-                layout: Layout::new(&layout::LAYERS),
+                layout,
             },
             Local {
                 // Initialization of local resources go here
