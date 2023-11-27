@@ -156,7 +156,7 @@ mod app {
         let delay = cortex_m::delay::Delay::new(cx.core.SYST, clocks.sysclk().to_Hz());
 
         let mut layout = Layout::new(&layout::LAYERS);
-        layout.add_tri_state_layer((1, 2), 3);
+        layout.add_tri_layer((1, 2), 3);
 
         (
             Shared {
