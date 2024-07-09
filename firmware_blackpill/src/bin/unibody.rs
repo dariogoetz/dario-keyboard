@@ -3,17 +3,21 @@
 
 use core::sync::atomic::{AtomicUsize, Ordering};
 use defmt_rtt as _; // global logger
+use frunk::{HCons, HNil};
 use hal::gpio::{EPin, Input, Output, PushPull};
 use hal::otg_fs::{UsbBusType, USB};
 use hal::prelude::*;
 use keyberon::debounce::Debouncer;
-use keyberon::key_code::KbHidReport;
 use keyberon::layout::{CustomEvent, Event, Layout};
 use keyberon::matrix::Matrix;
 use stm32f4xx_hal as hal;
+use synopsys_usb_otg::bus::UsbBus;
 use usb_device::bus::UsbBusAllocator;
 use usb_device::class::UsbClass as _;
 use usb_device::prelude::*;
+use usbd_human_interface_device::device::keyboard::{NKROBootKeyboard, NKROBootKeyboardConfig};
+use usbd_human_interface_device::page::Keyboard;
+use usbd_human_interface_device::usb_class::{UsbHidClass, UsbHidClassBuilder};
 
 use panic_probe as _;
 
@@ -49,7 +53,8 @@ pub fn exit() -> ! {
     }
 }
 
-type UsbClass = keyberon::Class<'static, UsbBusType, ()>;
+type UsbClass =
+    UsbHidClass<'static, UsbBus<USB>, HCons<NKROBootKeyboard<'static, UsbBus<USB>>, HNil>>;
 type UsbDevice = usb_device::device::UsbDevice<'static, UsbBusType>;
 
 #[rtic::app(device = stm32f4xx_hal::pac, dispatchers=[TIM1_CC])]
@@ -81,7 +86,7 @@ mod app {
         static mut USB_BUS: Option<UsbBusAllocator<UsbBusType>> = None;
 
         // setup the monotonic timer
-        let mut clocks = cx
+        let clocks = cx
             .device
             .RCC
             .constrain()
@@ -96,7 +101,7 @@ mod app {
         let gpiob = cx.device.GPIOB.split();
 
         // timer for processing keyboard events and sending a USB keyboard report
-        let mut timer = cx.device.TIM2.counter_hz(&mut clocks);
+        let mut timer = cx.device.TIM2.counter_hz(&clocks);
         // or equivalently
         // let mut timer = hal::timer::Timer::new(cx.device.TIM2, &mut clocks).counter_hz();
         timer.start(1.kHz()).unwrap();
@@ -117,7 +122,9 @@ mod app {
         }
 
         let usb_bus = unsafe { USB_BUS.as_ref().unwrap() };
-        let usb_class = keyberon::new_class(&usb_bus, ());
+        let usb_class = UsbHidClassBuilder::new()
+            .add_device(NKROBootKeyboardConfig::default())
+            .build(usb_bus);
         let usb_dev = UsbDeviceBuilder::new(usb_bus, UsbVidPid(VID, PID))
             .manufacturer("Dario Götz")
             .product("Dario Götz's 42-key unibody keyboard")
@@ -221,34 +228,29 @@ mod app {
         }
 
         let tick = cx.shared.layout.tick();
-        match tick {
-            CustomEvent::Release(()) => unsafe { cortex_m::asm::bootload(0x1FFF0000 as _) },
-            _ => (),
-        }
+        if let CustomEvent::Release(()) = tick {
+            unsafe { cortex_m::asm::bootload(0x1FFF0000 as _) }
+        };
 
         // send a USB keyboard report
-        let report: KbHidReport = cx.shared.layout.keycodes().collect();
-        if cx
-            .shared
-            .usb_class
-            .lock(|k| k.device_mut().set_keyboard_report(report.clone()))
-        {
-            while let Ok(0) = cx.shared.usb_class.lock(|k| k.write(report.as_bytes())) {}
-        }
+        while let Ok(()) = cx.shared.usb_class.lock(|k| {
+            k.device()
+                .write_report(cx.shared.layout.keycodes().map(|k| Keyboard::from(k as u8)))
+        }) {}
     }
 
     // USB events
     #[task(binds = OTG_FS, priority = 3, shared = [usb_dev, usb_class])]
     fn usb_tx(cx: usb_tx::Context) {
-        (cx.shared.usb_dev, cx.shared.usb_class).lock(|mut usb_dev, mut usb_class| {
-            usb_poll(&mut usb_dev, &mut usb_class);
+        (cx.shared.usb_dev, cx.shared.usb_class).lock(|usb_dev, usb_class| {
+            usb_poll(usb_dev, usb_class);
         });
     }
 
     #[task(binds = OTG_FS_WKUP, priority = 3, shared = [usb_dev, usb_class])]
     fn usb_rx(cx: usb_rx::Context) {
-        (cx.shared.usb_dev, cx.shared.usb_class).lock(|mut usb_dev, mut usb_class| {
-            usb_poll(&mut usb_dev, &mut usb_class);
+        (cx.shared.usb_dev, cx.shared.usb_class).lock(|usb_dev, usb_class| {
+            usb_poll(usb_dev, usb_class);
         });
     }
 

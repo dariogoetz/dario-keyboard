@@ -18,6 +18,9 @@ nb = "1"
 panic-probe = { version = "0.3.0", features = ["print-defmt"] }
 stm32f4xx-hal = { version = "0.18", features = ["stm32f401", "usb_fs"] }
 usb-device = "0.2.8"
+usbd-human-interface-device = "0.4"
+frunk = { version = "0.4", default-features = false }
+synopsys-usb-otg = { version = "0.3", features = ["cortex-m", "fs"] }
 
 # [features]
 # right_half = []
